@@ -53,42 +53,32 @@ npm run build
    ```
 
 2. **Create the markdown file:**
-   Create `public/data/my-new-article/index.md` with your content:
-   ```markdown
-   # My Article Title
+   Write your artical in Notion page.
+   Export your Notion page as md.
+   Rename your exported artical.md as "index.md", if you have a folder for images keep it as it is.
+   Create `public/data/my-new-article-directory/`.
+   Move `index.md` and images directory if avialible to this directory `public/data/my-new-article-directory/`.
 
-   Your article content here with markdown formatting.
+ 
 
-   ## Section heading
-
-   - Bullet points
-   - Code blocks
-   - Images
-
-   ```python
-   # Code example
-   print("Hello World")
-   ```
-   ```
-
-3. **Add images (optional):**
+3. **Add images (required as artical card cover):**
    Place any images in the same folder:
    ```bash
-   public/data/my-new-article/image1.png
+   public/data/my-new-article/artical_cover.png
    ```
 
 4. **Add metadata to `public/content/articles.json`:**
    ```json
    {
-     "article_id": "my-new-article",
+     "article_id": "my-new-article-directory",
      "article_title": "My Article Title",
-     "author_team_id": 1,
-     "category_id": 1,
+     "author_team_id": 1, //find out form team.json the proper team_id, if it is not found add new.
+     "category_id": 1, //find out form categories.json the proper category_id, if it is not found add new.
      "article_created_at": "2025-12-17",
      "article_keywords": ["keyword1", "keyword2"],
      "article_description": "Brief description of the article",
-     "article_directory": "my-new-article",
-     "featured_image": "image1.png"
+     "article_directory": "my-new-article-directory",
+     "featured_image": "artical_cover.png"  //the cover image of the artical that will be shown on the card of artical.
    }
    ```
 
