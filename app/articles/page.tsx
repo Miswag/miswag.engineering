@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { FooterClient as Footer } from "@/components/footer-client"
 import { ArticleCard } from "@/components/article-card"
 import type { Article, Category, TeamMember } from "@/lib/data"
 import { Input } from "@/components/ui/input"

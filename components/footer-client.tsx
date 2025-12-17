@@ -1,8 +1,30 @@
-import Image from "next/image"
-import { getFooterContent } from "@/lib/data"
+"use client"
 
-export async function Footer() {
-  const footerContent = await getFooterContent()
+import { useState, useEffect } from "react"
+import Image from "next/image"
+
+interface SocialLink {
+  name: string
+  url: string
+}
+
+interface FooterContent {
+  copyright: string
+  socialLinks: SocialLink[]
+}
+
+export function FooterClient() {
+  const [footerContent, setFooterContent] = useState<FooterContent>({
+    copyright: "© 2025 Miswag. All rights reserved.",
+    socialLinks: [],
+  })
+
+  useEffect(() => {
+    fetch("/content/footer.json")
+      .then((res) => res.json())
+      .then((data) => setFooterContent(data))
+      .catch((error) => console.error("Failed to load footer:", error))
+  }, [])
 
   return (
     <footer className="border-t border-border bg-background">

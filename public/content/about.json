@@ -1,0 +1,35 @@
+{
+  "title": "About Us",
+  "subtitle": "Miswag Engineering Blog is the technical voice behind Miswag, Iraq’s first and largest e-commerce marketplace. Founded in 2014 and built entirely by Iraqi talent, Miswag is a homegrown technology company that has scaled nationwide within a year of launch and continues to shape the future of e-commerce in Iraq. From robust web platforms to large-scale logistics systems, our engineering teams power a marketplace trusted by hundreds of thousands of users and hundreds of local and international brands. Backed by over $1.6M in Iraq’s first Pre-Series A round, Miswag has doubled its revenue and rapidly grown its user base—proving that world-class technology can be built and scaled locally. This blog shares insights, lessons, and innovations from Miswag engineers and technologists as we build secure, scalable, and reliable systems to serve customers across all Iraqi provinces—while operating fully within Iraqi commercial law and with a commitment to quality, authenticity, and impact.",
+  "mission": {
+    "heading": "Our Mission",
+    "description": "At Miswag Engineering Blog, we are dedicated to sharing knowledge and insights about the latest developments in technology. Our team of experienced engineers and developers brings you in-depth articles on data engineering, backend development, cloud architecture, and machine learning."
+  },
+    "values": [
+      {
+        "icon": "BookOpen",
+        "title": "Engineering Excellence",
+        "description": "We share in-depth, experience-driven content based on building and scaling Iraq’s largest e-commerce platform."
+      },
+      {
+        "icon": "Users",
+        "title": "Built by Miswag Engineers",
+        "description": "Our articles are written by Miswag’s engineers, product leaders, and technologists solving real production challenges."
+      },
+      {
+        "icon": "TrendingUp",
+        "title": "Scalable & Modern Tech",
+        "description": "We explore modern architectures, tools, and best practices used to support millions of users and rapid growth."
+      },
+      {
+        "icon": "Target",
+        "title": "Real-World Impact",
+        "description": "We focus on practical solutions—from infrastructure and performance to logistics and reliability—tested in the Iraqi market."
+      }
+    ],
+    "contact": {
+      "heading": "Connect with Miswag Engineering",
+      "description": "Have feedback, ideas, or want to collaborate? Reach out to the Miswag engineering team and join the conversation shaping Iraq’s tech ecosystem."
+    }
+  }
+  

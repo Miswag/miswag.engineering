@@ -32,6 +32,36 @@ export interface Article {
   featured_image: string
 }
 
+export interface AboutValue {
+  icon: string
+  title: string
+  description: string
+}
+
+export interface AboutContent {
+  title: string
+  subtitle: string
+  mission: {
+    heading: string
+    description: string
+  }
+  values: AboutValue[]
+  contact: {
+    heading: string
+    description: string
+  }
+}
+
+export interface SocialLink {
+  name: string
+  url: string
+}
+
+export interface FooterContent {
+  copyright: string
+  socialLinks: SocialLink[]
+}
+
 const publicDir = path.join(process.cwd(), "public")
 
 export async function getSiteConfig(): Promise<SiteConfig> {
@@ -62,4 +92,16 @@ export async function getArticleContent(directory: string): Promise<string> {
   const filePath = path.join(publicDir, "data", directory, "index.md")
   const fileContent = await fs.readFile(filePath, "utf-8")
   return fileContent
+}
+
+export async function getAboutContent(): Promise<AboutContent> {
+  const filePath = path.join(publicDir, "content", "about.json")
+  const fileContent = await fs.readFile(filePath, "utf-8")
+  return JSON.parse(fileContent)
+}
+
+export async function getFooterContent(): Promise<FooterContent> {
+  const filePath = path.join(publicDir, "content", "footer.json")
+  const fileContent = await fs.readFile(filePath, "utf-8")
+  return JSON.parse(fileContent)
 }

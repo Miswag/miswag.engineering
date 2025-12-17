@@ -124,6 +124,54 @@ Add a new category to `public/content/categories.json`:
 
 Then you can reference this category when creating articles using `"category_id": 5`.
 
+### Updating the About Page
+
+Edit `public/content/about.json` to customize the about page content:
+```json
+{
+  "title": "About Us",
+  "subtitle": "Your subtitle here",
+  "mission": {
+    "heading": "Our Mission",
+    "description": "Your mission statement..."
+  },
+  "values": [
+    {
+      "icon": "BookOpen",
+      "title": "Value Title",
+      "description": "Value description"
+    }
+  ],
+  "contact": {
+    "heading": "Get in Touch",
+    "description": "Contact section text..."
+  }
+}
+```
+
+**Available icons:** `BookOpen`, `Users`, `TrendingUp`, `Target`
+
+### Updating Footer Social Links
+
+Edit `public/content/footer.json` to customize the footer:
+```json
+{
+  "copyright": "© 2025 Your Company. All rights reserved.",
+  "socialLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/yourcompany"
+    },
+    {
+      "name": "LinkedIn",
+      "url": "https://www.linkedin.com/company/yourcompany"
+    }
+  ]
+}
+```
+
+You can add, remove, or modify social links as needed. Each link requires a `name` (display text) and `url` (link destination).
+
 ## Deployment
 
 This site automatically deploys to GitHub Pages when you push to the main branch.
