@@ -7,6 +7,8 @@ const nextConfig = {
     unoptimized: true,
   },
   output: "export",
+  basePath: "/miswag-tech-blog",
+  assetPrefix: "/miswag-tech-blog",
   trailingSlash: true,
 }
 
