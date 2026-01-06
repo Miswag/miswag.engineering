@@ -14,10 +14,10 @@ export default async function HomePage() {
     getSiteConfig(),
   ])
 
-  // Sort articles by date and get latest 3
+  // Sort articles by date and get latest 9
   const latestArticles = articles
     .sort((a, b) => new Date(b.article_created_at).getTime() - new Date(a.article_created_at).getTime())
-    .slice(0, 3)
+    .slice(0, 9)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -30,19 +30,6 @@ export default async function HomePage() {
             <div className="mx-auto max-w-3xl text-center">
               <h1 className="mb-6 text-5xl font-bold text-balance leading-tight">{siteConfig.title}</h1>
               <p className="mb-8 text-lg text-muted-foreground text-pretty">{siteConfig.bio}</p>
-              <div className="flex items-center justify-center gap-4">
-                <Link href="/articles">
-                  <Button size="lg" className="gap-2">
-                    Browse Articles
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/team">
-                  <Button variant="outline" size="lg">
-                    Meet the Team
-                  </Button>
-                </Link>
-              </div>
             </div>
           </div>
         </section>
@@ -80,29 +67,6 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Categories Section */}
-        <section className="border-t border-border bg-muted/20 py-16">
-          <div className="container mx-auto px-4">
-            <h2 className="mb-8 text-center text-3xl font-bold text-balance">Explore Topics</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {categories.map((category) => {
-                const categoryArticleCount = articles.filter((a) => a.category_id === category.category_id).length
-                return (
-                  <Link
-                    key={category.category_id}
-                    href={`/articles?category=${category.category_id}`}
-                    className="group rounded-lg border border-border bg-card p-6 transition-all hover:border-primary hover:shadow-md"
-                  >
-                    <h3 className="text-lg font-semibold group-hover:text-primary">{category.category_name}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {categoryArticleCount} {categoryArticleCount === 1 ? "article" : "articles"}
-                    </p>
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />

@@ -141,9 +141,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Written by</p>
-                    <Link href="/team" className="text-lg font-semibold hover:text-primary">
+                    <p className="text-lg font-semibold">
                       {author.team_member_name}
-                    </Link>
+                    </p>
                     <p className="text-sm text-muted-foreground">{author.team_member_position}</p>
                   </div>
                 </div>
