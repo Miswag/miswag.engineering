@@ -1,0 +1,74 @@
+[
+  {
+    "team_id": 1,
+    "team_member_name": "Mustafa Ahmed",
+    "team_member_position": "CTO",
+    "team_member_linkedin": "https://www.linkedin.com/in/mustafaalhusaini/",
+    "team_member_avatar": "cto.jpeg",
+    "team_member_bio": "Chief Technology Officer"
+  },
+  {
+    "team_id": 2,
+    "team_member_name": "Ayoob Mohammed",
+    "team_member_position": "Software Engineer",
+    "team_member_linkedin": "https://www.linkedin.com/in/ayoobmh/",
+    "team_member_avatar": "ayob.png",
+    "team_member_bio": "Core Team"
+  },
+  {
+    "team_id": 3,
+    "team_member_name": "Hameed Mahmood Salih",
+    "team_member_position": "Data Engineer",
+    "team_member_linkedin": "https://www.linkedin.com/in/h-m-reseng/",
+    "team_member_avatar": "hameed.jpeg",
+    "team_member_bio": "Passionate about building scalable data infrastructure and analytics solutions."
+  },
+  {
+    "team_id": 4,
+    "team_member_name": "Mustafa Naser",
+    "team_member_position": "iOS Developer",
+    "team_member_linkedin": "https://www.linkedin.com/in/mustafa-naser-825675147/",
+    "team_member_avatar": "mustafagt.png",
+    "team_member_bio": "♚ Mobile Realm Lord ♛"
+  },
+  {
+    "team_id": 5,
+    "team_member_name": "Mohammed Taqi",
+    "team_member_position": "Android Developer",
+    "team_member_linkedin": "https://www.linkedin.com/in/mohammed-taqi-165085203/",
+    "team_member_avatar": "taqi.jpeg",
+    "team_member_bio": "Android Developer"
+  },
+  {
+    "team_id": 6,
+    "team_member_name": "Ahmed Ali Atiyah",
+    "team_member_position": "Back End Software Engineer",
+    "team_member_linkedin": "https://www.linkedin.com/in/ahmedalkaaby/",
+    "team_member_avatar": "ahmedatiyah.png",
+    "team_member_bio": "Back-End Software Developer"
+  },
+  {
+    "team_id": 7,
+    "team_member_name": "Hamza Kareem",
+    "team_member_position": "Front-End Engineer",
+    "team_member_linkedin": "https://www.linkedin.com/in/hamza-kareem-6a6305178/",
+    "team_member_avatar": "hamzaweb.png",
+    "team_member_bio": "Front-End Engineer"
+  },
+  {
+    "team_id": 8,
+    "team_member_name": "Mustafa Ali",
+    "team_member_position": "Software Engineer",
+    "team_member_linkedin": "https://www.linkedin.com/in/ch3rlo/",
+    "team_member_avatar": "mustafali.jpeg",
+    "team_member_bio": "I build things using magic!"
+  },
+  {
+    "team_id": 9,
+    "team_member_name": "Ibrahim Al-Zararee",
+    "team_member_position": "Head of Product & Growth",
+    "team_member_linkedin": "https://www.linkedin.com/in/izararee/",
+    "team_member_avatar": "ib.png",
+    "team_member_bio": "Head of Product & Growth"
+  }
+]

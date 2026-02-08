@@ -1,0 +1,22 @@
+[
+  {
+    "category_id": 1,
+    "category_name": "Data Engineering"
+  },
+  {
+    "category_id": 2,
+    "category_name": "Software Development"
+  },
+  {
+    "category_id": 3,
+    "category_name": "Cloud Architecture"
+  },
+  {
+    "category_id": 4,
+    "category_name": "Machine Learning"
+  },
+  {
+    "category_id": 5,
+    "category_name": "Product Design"
+  }
+]

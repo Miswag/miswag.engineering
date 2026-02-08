@@ -1,0 +1,35 @@
+[
+  {
+    "article_id": "mysql-bin-log",
+    "article_title": "Understanding Binary Logs in Amazon RDS MySQL: A Practical Guide to Database Change Data Capture",
+    "author_team_id": 3,
+    "category_id": 1,
+    "article_created_at": "2025-05-07",
+    "article_keywords": ["CDC", "MySQL", "AWS","BinLog","Database"],
+    "article_description": "In Amazon RDS, binary logs (binlogs) serve as critical components for recording all changes to your database, including INSERT, UPDATE, and DELETE operations. These logs enable essential functionality such as replication, point-in-time recovery, and change data capture (CDC).",
+    "article_directory": "mysql-bin-log",
+    "featured_image": "rdsmysqlcdc.webp"
+  },
+  {
+    "article_id": "data-pipeline",
+    "article_title": "Batch Data Pipeline Design: Full Load vs. Incremental Load",
+    "author_team_id": 3,
+    "category_id": 1,
+    "article_created_at": "2025-05-19",
+    "article_keywords": ["data", "pipeline", "batch","full-load","incremental"],
+    "article_description": "Building effective batch data pipelines is fundamental to modern data engineering. This article focuses on implementing batch data pipeline patterns specifically in a SQL, Python, Mage AI, and ClickHouse ecosystem.",
+    "article_directory": "data-pipeline",
+    "featured_image": "datapipe.webp"
+  },
+  {
+    "article_id": "open-metadata-datahub",
+    "article_title": "Open Metadata vs. DataHub: Choosing the Right Data Catalog Tool for Your Team",
+    "author_team_id": 3,
+    "category_id": 1,
+    "article_created_at": "2024-12-28",
+    "article_keywords": ["governance", "datahub", "open-metadata"],
+    "article_description": "OpenMetadata and DataHub are both open-source platforms. Both tools offer similar functionalities for data cataloging, search, discovery, governance, and quality.",
+    "article_directory": "open-metadata-datahub",
+    "featured_image": "open-metadata-vs-data-hub-seo-og.png"
+  }
+]
