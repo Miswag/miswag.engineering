@@ -21,10 +21,16 @@ export const metadata: Metadata = {
   publisher: "Miswag Engineering",
   icons: {
     icon: [
-      { url: "/favicon.png", type: "image/png" },
-      { url: "/icon-dark-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
-    apple: "/apple-icon.png",
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
   },
   openGraph: {
     type: "website",
