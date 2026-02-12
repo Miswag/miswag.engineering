@@ -70,5 +70,13 @@
     "team_member_linkedin": "https://www.linkedin.com/in/izararee/",
     "team_member_avatar": "ib.png",
     "team_member_bio": "Head of Product & Growth"
+  },
+  {
+    "team_id": 10,
+    "team_member_name": "Ibrahim Ismail",
+    "team_member_position": "Software Engineer",
+    "team_member_linkedin": "https://www.linkedin.com/in/ibrahim-ismail-6a6330168/",
+    "team_member_avatar": "robot.jpg",
+    "team_member_bio": "Core Team"
   }
 ]
