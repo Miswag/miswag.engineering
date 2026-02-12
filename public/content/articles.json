@@ -31,5 +31,16 @@
     "article_description": "OpenMetadata and DataHub are both open-source platforms. Both tools offer similar functionalities for data cataloging, search, discovery, governance, and quality.",
     "article_directory": "open-metadata-datahub",
     "featured_image": "open-metadata-vs-data-hub-seo-og.png"
+  },
+  {
+    "article_id": "laravel-streamer",
+    "article_title": "Fixing Missed Events in a Laravel Event-Driven System with Redis Consumer Groups",
+    "author_team_id": 10,
+    "category_id": 2,
+    "article_created_at": "2025-6-16",
+    "article_keywords": ["redis-streams", "laravel", "laravel-streamer", "redis"],
+    "article_description": "Understanding the core functionality of your tools — and the features they already provide — can save you valuable time and lead to cleaner, more reliable solutions. Often, the best fix isn’t rewriting logic, but fully leveraging the capabilities that are already built in.",
+    "article_directory": "laravel-streamer",
+    "featured_image": "cover.png"
   }
 ]
