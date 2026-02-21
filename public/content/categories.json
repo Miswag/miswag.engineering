@@ -18,5 +18,9 @@
   {
     "category_id": 5,
     "category_name": "Product Design"
+  },
+  {
+    "category_id": 6,
+    "category_name": "Frontend Engineering"
   }
 ]
