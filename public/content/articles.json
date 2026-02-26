@@ -55,6 +55,6 @@
     ],
     "article_description": "Not every system is ready to listen the moment something worth capturing happens. Event buffering is the practice of temporarily storing events until the consuming system is prepared to receive them — turning a race condition into a guarantee. This article introduces the pattern, explains when and why it's needed, and walks through how it works.",
     "article_directory": "frontend-event-buffering",
-    "featured_image": "buffer-lifecycle.png"
+    "featured_image": "buffer-lifecycle.jpeg"
   }
 ]

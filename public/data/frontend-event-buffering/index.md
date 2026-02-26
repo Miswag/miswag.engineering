@@ -36,7 +36,7 @@ We load **RudderStack** from its CDN instead of the npm package to keep the SDK 
 
 This is the timeline of a typical page load:
 
-![Page Load Timeline](sdk-timeline.png)
+![Page Load Timeline](sdk-timeline.jpeg)
 
 Everything before the SDK is ready is gone. For analytics, this means **missing attribution data, and unreliable metrics**.
 
@@ -216,7 +216,7 @@ The buffer moves through four states:
 | **Flushing**    | SDK became ready, Sending (dispatching) all queued events |
 | **Direct Send** | SDK is ready, events bypass the buffer entirely           |
 
-![Buffer Lifecycle](buffer-lifecycle.png)
+![Buffer Lifecycle](buffer-lifecycle.jpeg)
 
 ---
 
