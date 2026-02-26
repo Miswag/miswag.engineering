@@ -32,10 +32,11 @@ The tradeoff is **memory**. If the receiver never catches up, the buffer grows w
 
 In any web application, third-party scripts load **asynchronously**. There is always a gap between the moment a user starts interacting with a page and the moment the analytics SDK finishes initializing. Events fired during that gap — page views, clicks, form submissions — are silently lost.
 
+We load **RudderStack** from its CDN instead of the npm package to keep the SDK out of the main bundle and therefore make it smaller in size, that also means it loads async, so the buffer is necessary.
+
 This is the timeline of a typical page load:
 
 ![Page Load Timeline](sdk-timeline.png)
-
 
 Everything before the SDK is ready is gone. For analytics, this means **missing attribution data, and unreliable metrics**.
 
@@ -51,19 +52,34 @@ A buffer sits between your application code and the analytics SDK. It intercepts
 The core routing logic looks like this:
 
 ```javascript
-function sendOrBufferEvent(method,args){
-
-    if (isSDKReady()) {
-      try {
-        analytics[method](...args);
-      } catch (err) {
-        bufferEvent(method,args);
-      }
-    } else {
-      bufferEvent(method,args);
+function sendOrBufferEvent(
+  method,
+  args,
+) {
+  if (
+    isSDKReady()
+  ) {
+    try {
+      analytics[
+        method
+      ](
+        ...args,
+      );
+    } catch (err) {
+      bufferEvent(
+        method,
+        args,
+      );
     }
-};
+  } else {
+    bufferEvent(
+      method,
+      args,
+    );
+  }
+}
 ```
+
 > Notice the `try/catch` — even when the SDK reports itself as ready, a call can still fail. The buffer acts as a safety net in that case too.
 
 ---
@@ -75,17 +91,29 @@ function sendOrBufferEvent(method,args){
 An unbounded queue is dangerous in the browser. If the SDK never loads, the buffer grows indefinitely, consuming memory. A fixed-size buffer with oldest-first eviction solves this:
 
 ```javascript
-const BUFFER_CONFIG = {
+const BUFFER_CONFIG =
+  {
     MAX_BUFFER_SIZE: 10,
-    FLUSH_TIMEOUT: 60000
-};
+    FLUSH_TIMEOUT: 60000,
+  };
 
-function bufferEvent(method,args){
-    if (eventBuffer.length >= BUFFER_CONFIG.MAX_BUFFER_SIZE) {
-      eventBuffer.shift(); // evict the oldest event
-    }
-    eventBuffer.push({method,args});
-};
+function bufferEvent(
+  method,
+  args,
+) {
+  if (
+    eventBuffer.length >=
+    BUFFER_CONFIG.MAX_BUFFER_SIZE
+  ) {
+    eventBuffer.shift(); // evict the oldest event
+  }
+  eventBuffer.push(
+    {
+      method,
+      args,
+    },
+  );
+}
 ```
 
 This creates a **sliding window** — the buffer always holds the most recent events. Older events are sacrificed to keep memory bounded. The assumption is that recent interactions are more valuable than stale ones.
@@ -100,23 +128,28 @@ The buffer is flushed in two scenarios:
 | **Timeout (60s)**  | Fixed duration after page load | Fallback — in case the callback is unreliable |
 
 ```javascript
-function setupReadyListener(){
-    // Primary: listen for the SDK's ready signal
-    analytics.ready(() => {
-        markAsReady();
-      },
-    );
+function setupReadyListener() {
+  // Primary: listen for the SDK's ready signal
+  analytics.ready(
+    () => {
+      markAsReady();
+    },
+  );
 
-    // Fallback: try flushing after a timeout
-    setTimeout(
-      () => {
-        if (eventBuffer.length > 0 && isSDKReady()) {
-          flushBuffer();
-        }
-      },
-      FLUSH_TIMEOUT,
-    );
-  };
+  // Fallback: try flushing after a timeout
+  setTimeout(
+    () => {
+      if (
+        eventBuffer.length >
+          0 &&
+        isSDKReady()
+      ) {
+        flushBuffer();
+      }
+    },
+    FLUSH_TIMEOUT,
+  );
+}
 ```
 
 The timeout does **not** force a flush blindly — it checks whether the SDK is actually ready before dispatching. This prevents sending events into a half-initialized system.
@@ -127,13 +160,17 @@ Once the SDK is marked as ready, it stays ready. The `markAsReady` function is i
 
 ```javascript
 function markAsReady() {
-    if (_isReady)
-      return; // already marked
+  if (
+    _isReady
+  )
+    return; // already marked
 
-    _isReady = true;
-    clearTimeout(flushTimeout);
-    flushBuffer();
-};
+  _isReady = true;
+  clearTimeout(
+    flushTimeout,
+  );
+  flushBuffer();
+}
 ```
 
 This avoids duplicate flushes and ensures the timeout is cleaned up the moment the primary trigger fires.
@@ -144,14 +181,21 @@ A simple boolean flag is not enough. True readiness means the SDK object exists 
 
 ```javascript
 function isSDKReady() {
-    return (
-      typeof window !== "undefined" &&
-      window.analytics &&
-      _isReady &&
-      typeof window.analytics.track === "function" &&
-      typeof window.analytics.identify === "function"
-    );
-};
+  return (
+    typeof window !==
+      "undefined" &&
+    window.analytics &&
+    _isReady &&
+    typeof window
+      .analytics
+      .track ===
+      "function" &&
+    typeof window
+      .analytics
+      .identify ===
+      "function"
+  );
+}
 ```
 
 This guards against edge cases where the SDK script is loaded but not fully initialized, or where a different script has overwritten the global.
@@ -164,27 +208,60 @@ When the buffer flushes, every queued event is dispatched and the queue is empti
 
 ```javascript
 async function flushBuffer() {
-    if (eventBuffer.length === 0)
-      return;
+  if (
+    eventBuffer.length ===
+    0
+  )
+    return;
 
-    // Snapshot and drain: remove only the current events. Events added during
-    // the async window stay in the buffer for the next flush.
-    const toFlush = eventBuffer.splice(0, eventBuffer.length);
+  // Snapshot and drain: remove only the current events. Events added during
+  // the async window stay in the buffer for the next flush.
+  const toFlush =
+    eventBuffer.splice(
+      0,
+      eventBuffer.length,
+    );
 
-    const promises = toFlush.map((event) => {
-      return new Promise((resolve) => {
-        try {
-          analytics[event.method](...event.args);
-          resolve({ success: true });
-        } catch (error) {
-          resolve({ success: false, error });
-        }
-      });
-    });
+  const promises =
+    toFlush.map(
+      (
+        event,
+      ) => {
+        return new Promise(
+          (
+            resolve,
+          ) => {
+            try {
+              analytics[
+                event
+                  .method
+              ](
+                ...event.args,
+              );
+              resolve(
+                {
+                  success: true,
+                },
+              );
+            } catch (error) {
+              resolve(
+                {
+                  success: false,
+                  error,
+                },
+              );
+            }
+          },
+        );
+      },
+    );
 
-    await Promise.allSettled(promises);
+  await Promise.allSettled(
+    promises,
+  );
 }
 ```
+
 > Note: **`Promise.allSettled`** instead of `Promise.all` — one failing event does not block the rest.
 
 ---
@@ -193,12 +270,12 @@ async function flushBuffer() {
 
 The buffer moves through four states:
 
-| State           | Description                                     |
-| --------------- | ----------------------------------------------- |
-| **Idle**        | No events queued, waiting for activity          |
-| **Buffering**   | SDK not ready, events are being queued          |
+| State           | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| **Idle**        | No events queued, waiting for activity                    |
+| **Buffering**   | SDK not ready, events are being queued                    |
 | **Flushing**    | SDK became ready, Sending (dispatching) all queued events |
-| **Direct Send** | SDK is ready, events bypass the buffer entirely |
+| **Direct Send** | SDK is ready, events bypass the buffer entirely           |
 
 ![Buffer Lifecycle](buffer-lifecycle.png)
 
