@@ -52,30 +52,15 @@ A buffer sits between your application code and the analytics SDK. It intercepts
 The core routing logic looks like this:
 
 ```javascript
-function sendOrBufferEvent(
-  method,
-  args,
-) {
-  if (
-    isSDKReady()
-  ) {
+function sendOrBufferEvent(method, args) {
+  if (isSDKReady()) {
     try {
-      analytics[
-        method
-      ](
-        ...args,
-      );
+      analytics[method](...args);
     } catch (err) {
-      bufferEvent(
-        method,
-        args,
-      );
+      bufferEvent(method, args);
     }
   } else {
-    bufferEvent(
-      method,
-      args,
-    );
+    bufferEvent(method, args);
   }
 }
 ```
@@ -97,14 +82,8 @@ const BUFFER_CONFIG =
     FLUSH_TIMEOUT: 60000,
   };
 
-function bufferEvent(
-  method,
-  args,
-) {
-  if (
-    eventBuffer.length >=
-    BUFFER_CONFIG.MAX_BUFFER_SIZE
-  ) {
+function bufferEvent(method,args) {
+  if (eventBuffer.length >= BUFFER_CONFIG.MAX_BUFFER_SIZE) {
     eventBuffer.shift(); // evict the oldest event
   }
   eventBuffer.push(
@@ -139,15 +118,11 @@ function setupReadyListener() {
   // Fallback: try flushing after a timeout
   setTimeout(
     () => {
-      if (
-        eventBuffer.length >
-          0 &&
-        isSDKReady()
-      ) {
+      if (eventBuffer.length > 0 && isSDKReady()) {
         flushBuffer();
       }
     },
-    FLUSH_TIMEOUT,
+    BUFFER_CONFIG.FLUSH_TIMEOUT,
   );
 }
 ```
@@ -160,15 +135,11 @@ Once the SDK is marked as ready, it stays ready. The `markAsReady` function is i
 
 ```javascript
 function markAsReady() {
-  if (
-    _isReady
-  )
-    return; // already marked
-
+  if (_isReady) return; // already marked
+  
   _isReady = true;
-  clearTimeout(
-    flushTimeout,
-  );
+  
+  clearTimeout(flushTimeout);
   flushBuffer();
 }
 ```
@@ -182,18 +153,11 @@ A simple boolean flag is not enough. True readiness means the SDK object exists 
 ```javascript
 function isSDKReady() {
   return (
-    typeof window !==
-      "undefined" &&
+    typeof window !== "undefined" &&
     window.analytics &&
     _isReady &&
-    typeof window
-      .analytics
-      .track ===
-      "function" &&
-    typeof window
-      .analytics
-      .identify ===
-      "function"
+    typeof window.analytics.track === "function" &&
+    typeof window.analytics.identify === "function"
   );
 }
 ```
@@ -208,57 +172,24 @@ When the buffer flushes, every queued event is dispatched and the queue is empti
 
 ```javascript
 async function flushBuffer() {
-  if (
-    eventBuffer.length ===
-    0
-  )
-    return;
+  if (eventBuffer.length === 0) return;
 
   // Snapshot and drain: remove only the current events. Events added during
   // the async window stay in the buffer for the next flush.
-  const toFlush =
-    eventBuffer.splice(
-      0,
-      eventBuffer.length,
-    );
+  const toFlush = eventBuffer.splice(0, eventBuffer.length);
 
-  const promises =
-    toFlush.map(
-      (
-        event,
-      ) => {
-        return new Promise(
-          (
-            resolve,
-          ) => {
-            try {
-              analytics[
-                event
-                  .method
-              ](
-                ...event.args,
-              );
-              resolve(
-                {
-                  success: true,
-                },
-              );
-            } catch (error) {
-              resolve(
-                {
-                  success: false,
-                  error,
-                },
-              );
-            }
-          },
-        );
-      },
-    );
+  const promises = toFlush.map((event) => {
+    return new Promise((resolve) => {
+      try {
+        analytics[event.method](...event.args);
+        resolve({ success: true });
+      } catch (error) {
+        resolve({ success: false, error });
+      }
+    });
+  });
 
-  await Promise.allSettled(
-    promises,
-  );
+  await Promise.allSettled(promises);
 }
 ```
 
