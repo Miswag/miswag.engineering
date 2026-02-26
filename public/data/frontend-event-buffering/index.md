@@ -167,26 +167,23 @@ async function flushBuffer() {
     if (eventBuffer.length === 0)
       return;
 
-    const promises = eventBuffer.map((event) => {
-          return new Promise(
-            (resolve) => {
-              try {
-                analytics[event.method](...event.args);
-                resolve({ success: true});
-                
-              } catch (error) {
-                resolve({success: false,error});
-              }
-            },
-          );
-        },
-      );
+    // Snapshot and drain: remove only the current events. Events added during
+    // the async window stay in the buffer for the next flush.
+    const toFlush = eventBuffer.splice(0, eventBuffer.length);
+
+    const promises = toFlush.map((event) => {
+      return new Promise((resolve) => {
+        try {
+          analytics[event.method](...event.args);
+          resolve({ success: true });
+        } catch (error) {
+          resolve({ success: false, error });
+        }
+      });
+    });
 
     await Promise.allSettled(promises);
-    
-    // Clear the buffer
-    eventBuffer.length = 0;
-};
+}
 ```
 > Note: **`Promise.allSettled`** instead of `Promise.all` — one failing event does not block the rest.
 
