@@ -107,27 +107,32 @@ The buffer is flushed in two scenarios:
 | **Timeout (60s)**  | Fixed duration after page load | Fallback — in case the callback is unreliable |
 
 ```javascript
-function setupReadyListener() {
-  // Primary: listen for the SDK's ready signal
-  analytics.ready(
-    () => {
-      markAsReady();
-    },
-  );
+let flushTimeout = null;
+let readyEventListener = null;
 
-  // Fallback: try flushing after a timeout
-  setTimeout(
-    () => {
-      if (eventBuffer.length > 0 && isSDKReady()) {
-        flushBuffer();
-      }
-    },
-    BUFFER_CONFIG.FLUSH_TIMEOUT,
-  );
+function setupTimeoutFlush() {
+  if (flushTimeout || typeof window === "undefined") return;
+  flushTimeout = setTimeout(() => {
+    if (eventBuffer.length > 0 && isSDKReady()) {
+      flushBuffer();
+    }
+  }, BUFFER_CONFIG.FLUSH_TIMEOUT);
+}
+
+function setupReadyListener() {
+  if (readyEventListener || typeof window === "undefined") return;
+
+  readyEventListener = () => markAsReady();
+
+  if (window.analytics && window.analytics.ready) {
+    window.analytics.ready(readyEventListener);
+  }
+
+  setupTimeoutFlush();
 }
 ```
 
-The timeout does **not** force a flush blindly — it checks whether the SDK is actually ready before dispatching. This prevents sending events into a half-initialized system.
+The timeout is set up once and uses `BUFFER_CONFIG.FLUSH_TIMEOUT`. It only flushes when the buffer has events and the SDK is ready, so the fallback does not send into a half-initialized system.
 
 ### 3. One-Way Ready State
 
@@ -136,15 +141,18 @@ Once the SDK is marked as ready, it stays ready. The `markAsReady` function is i
 ```javascript
 function markAsReady() {
   if (_isReady) return; // already marked
-  
+
+  readyEventListener = null;
+  if (flushTimeout) {
+    clearTimeout(flushTimeout);
+    flushTimeout = null;
+  }
   _isReady = true;
-  
-  clearTimeout(flushTimeout);
   flushBuffer();
 }
 ```
 
-This avoids duplicate flushes and ensures the timeout is cleaned up the moment the primary trigger fires.
+This avoids duplicate flushes and clears the ready callback and timeout as soon as the primary trigger fires.
 
 ### 4. Readiness Check
 
