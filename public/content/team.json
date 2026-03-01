@@ -78,5 +78,13 @@
     "team_member_linkedin": "https://www.linkedin.com/in/ibrahim-ismail-6a6330168/",
     "team_member_avatar": "robot.jpg",
     "team_member_bio": "Core Team"
+  },
+  {
+    "team_id": 11,
+    "team_member_name": "Aya Jafar",
+    "team_member_position": "Frontend Engineer",
+    "team_member_linkedin": "https://www.linkedin.com/in/aya-jafar/",
+    "team_member_avatar": "aya.png",
+    "team_member_bio": "Frontend Engineer"
   }
 ]

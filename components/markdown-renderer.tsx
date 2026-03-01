@@ -2,6 +2,7 @@
 
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { withBasePath } from "@/lib/utils"
@@ -16,6 +17,7 @@ export function MarkdownRenderer({ content, articleDirectory }: MarkdownRenderer
     <div className="prose prose-lg max-w-none">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+
         components={{
         h1: ({ children }) => <h1 className="mb-6 mt-8 text-4xl font-bold text-balance">{children}</h1>,
         h2: ({ children }) => <h2 className="mb-4 mt-8 text-3xl font-semibold text-balance">{children}</h2>,
@@ -38,6 +40,22 @@ export function MarkdownRenderer({ content, articleDirectory }: MarkdownRenderer
           <blockquote className="my-4 border-l-4 border-primary pl-4 italic text-muted-foreground">
             {children}
           </blockquote>
+        ),
+        table: ({ children }) => (
+          <div className="my-6 w-full overflow-x-auto">
+            <table className="w-full border-collapse text-sm">{children}</table>
+          </div>
+        ),
+        thead: ({ children }) => (
+          <thead className="border-b-2 border-border bg-muted/50">{children}</thead>
+        ),
+        tbody: ({ children }) => <tbody className="divide-y divide-border">{children}</tbody>,
+        tr: ({ children }) => <tr className="transition-colors hover:bg-muted/30">{children}</tr>,
+        th: ({ children }) => (
+          <th className="px-4 py-3 text-left font-semibold">{children}</th>
+        ),
+        td: ({ children }) => (
+          <td className="px-4 py-3">{children}</td>
         ),
         code({ className, children, ...props }) {
           const match = /language-(\w+)/.exec(className || "")
