@@ -33,7 +33,7 @@ miswag.engineering/
 │   ├── data/                 # Article markdown files and images
 │   ├── avatars/              # Team member avatars
 │   ├── logo.png
-│   └── favicon.png
+│   └── favicon.ico
 └── .github/workflows/        # GitHub Actions deployment
 ```
 

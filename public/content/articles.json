@@ -1,5 +1,49 @@
 [
   {
+    "article_id": "clickhouse-optimization",
+    "article_title": "Over-Partitioning Can Kill Your ClickHouse Performance and Inflate Your Costs",
+    "author_team_id": 3,
+    "category_id": 1,
+    "article_created_at": "2026-03-04",
+    "article_keywords": ["ClickHouse", "Partitioning", "Memory Optimization", "jemalloc", "ClickHouse Cloud"],
+    "article_description": "Daily partitioning in ClickHouse can silently consume gigabytes of memory through part metadata overhead, merge pressure, and jemalloc fragmentation. This case study shows how switching from daily to monthly partitioning reduced active parts by 90%, cut memory usage by 30%, and eliminated the need for a costly tier upgrade — all without changing a single query.",
+    "article_directory": "clickhouse-optimization",
+    "featured_image": "clickhouse.png"
+  },
+  {
+    "article_id": "fullload-optimization",
+    "article_title": "Loading Large MySQL Tables Into ClickHouse Without Blocking Production — A MageAI Pipeline Pattern",
+    "author_team_id": 3,
+    "category_id": 1,
+    "article_created_at": "2026-04-15",
+    "article_keywords": ["MySQL", "MageAI", "Data Replication", "ETL", "Pipeline"],
+    "article_description": "A chunked, memory-efficient full-load pattern for replicating large MySQL tables into ClickHouse using query-based extraction and MageAI orchestration. Covers ID-based pagination, batch sizing, memory management, and production-safe extraction — no CDC, binlog, or replica required.",
+    "article_directory": "fullload-optimization",
+    "featured_image": "mysqlstreaming.webp"
+  },
+  {
+    "article_id": "pipelines-openmetadata",
+    "article_title": "Automating Custom Data Pipeline Service Ingestion to OpenMetadata Using Python SDK",
+    "author_team_id": 3,
+    "category_id": 1,
+    "article_created_at": "2025-07-07",
+    "article_keywords": ["OpenMetadata", "MageAI", "Metadata Ingestion", "Data Catalog", "Pipeline Orchestration"],
+    "article_description": "A practical guide to programmatically ingesting pipeline metadata from custom orchestrators into OpenMetadata using its Python SDK. Covers creating pipeline services, registering pipelines, and syncing task-level metadata — with MageAI as the example, but applicable to Prefect, Dagster, or any orchestrator with a REST API.",
+    "article_directory": "pipelines-openmetadata",
+    "featured_image": "mageai.png"
+  },
+  {
+    "article_id": "typesense-openmetadata",
+    "article_title": "Automating Typesense Search Index Ingestion to OpenMetadata Using Python SDK",
+    "author_team_id": 3,
+    "category_id": 1,
+    "article_created_at": "2025-08-13",
+    "article_keywords": ["OpenMetadata", "Typesense", "Search Index", "Data Governance", "Data Catalog"],
+    "article_description": "A step-by-step guide to discovering Typesense collections and registering them as search index entities in OpenMetadata using the Python SDK. Covers field type mapping, sample data extraction, and idempotent sync — bringing search engine metadata into your governance catalog alongside databases, pipelines, and dashboards.",
+    "article_directory": "typesense-openmetadata",
+    "featured_image": "typesense.jpg"
+  },
+  {
     "article_id": "mysql-bin-log",
     "article_title": "Understanding Binary Logs in Amazon RDS MySQL: A Practical Guide to Database Change Data Capture",
     "author_team_id": 3,
