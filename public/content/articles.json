@@ -11,6 +11,28 @@
     "featured_image": "clickhouse.png"
   },
   {
+    "article_id": "gx-setup",
+    "article_title": "End-to-End Data Quality Architecture: Great Expectations, GitHub, S3, Slack, and Linear — From Validation to Resolution",
+    "author_team_id": 3,
+    "category_id": 1,
+    "article_created_at": "2025-08-13",
+    "article_keywords": ["GreatExpectations", "Data Quality", "Data Architecture", "DataOps", "GX"],
+    "article_description": "A complete, production-proven architecture for continuous data quality validation that goes beyond detection. Built on Great Expectations, GitHub, S3, Slack, and Linear, the system automates the full lifecycle of a data issue — from rule creation by multiple teams, through daily scheduled validation against a data warehouse, to real-time alerting and automatic issue creation routed to the right team's backlog. Runs for under $5/month with no dedicated infrastructure.",
+    "article_directory": "gx-setup",
+    "featured_image": "ge.png"
+  },
+  {
+    "article_id": "gx-optimization",
+    "article_title": "From $25/Day to $0.01/Day: Optimizing Great Expectations for Production Cost and Speed, (Migration from v0.18 to v1.x)",
+    "author_team_id": 3,
+    "category_id": 1,
+    "article_created_at": "2026-01-13",
+    "article_keywords": ["GreatExpectations", "Data Quality", "Cost Optimization", "Migration", "GX"],
+    "article_description": "How a hidden default in Great Expectations — rebuilding all Data Docs on every checkpoint run — silently inflated pipeline costs from $0.50 to $25/day. Covers the 0.18.x to 1.x migration, the API delta, and the architectural fix that cut costs by 99.96% and runtime by 90%.",
+    "article_directory": "gx-optimization",
+    "featured_image": "gx-opt.png"
+  },
+  {
     "article_id": "fullload-optimization",
     "article_title": "Loading Large MySQL Tables Into ClickHouse Without Blocking Production — A MageAI Pipeline Pattern",
     "author_team_id": 3,
