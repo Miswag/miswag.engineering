@@ -174,10 +174,17 @@ def _resolve_schedule(pipeline_data: dict):
     )
 
 def _needs_update(existing: Pipeline, pipeline_data: dict) -> bool:
-    """Return True if the OpenMetadata record differs from the source."""
+    """
+    Return True if the OpenMetadata record differs from the source.
+    """
+
+    # In Mage, pipeline "name" is the same as "uuid"
+    expected_name = pipeline_data.get("uuid")
+    expected_description = pipeline_data.get("description")
+
     return not (
-        existing.description == pipeline_data.get("description")
-        and existing.name.root == pipeline_data.get("id")
+        existing.description == expected_description
+        and existing.name.root == expected_name
     )
 
 def sync_pipelines():

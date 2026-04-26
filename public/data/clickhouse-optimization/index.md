@@ -4,9 +4,9 @@
 
 ---
 
-ClickHouse partitioning is one of those features that feels harmless until it isn't. You pick `toYYYYMMDD(timestamp)` because it seems reasonable — one partition per day, clean and organized. Months later, your memory usage is pinned at 8 GiB, your merge queue never settles, and you're considering a tier upgrade you shouldn't need.
+ClickHouse partitioning is one of those features that feels harmless until it isn't. You pick `toYYYYMMDD(timestamp)` because it seems reasonable — one partition per day, clean and organized. Months later, your active part count is in the tens of thousands, your merge queue never settles, and you're staring at a forced tier upgrade that will roughly double your bill.
 
-This is the story of how daily partitioning quietly consumed gigabytes of memory on our ClickHouse Cloud instance, how we diagnosed it, and how switching to monthly partitioning cut memory by 30% — without changing a single query or losing any functionality.
+This is the story of how daily partitioning quietly accumulated **21,883 active parts** on our ClickHouse Cloud cluster, pushed resident memory to 9.5 GiB, and how switching to a coarser partition period cut memory to 6 GiB — a **37% reduction** — without changing a single query or losing any functionality.
 
 ---
 
@@ -14,127 +14,103 @@ This is the story of how daily partitioning quietly consumed gigabytes of memory
 
 We run ClickHouse Cloud as the analytics backend for a high-traffic e-commerce platform. Event data flows in through RudderStack — page views, screen events, product clicks, searches, cart actions, and dozens of other event types — each landing in its own table. On top of that, dbt models transform and aggregate the raw events into analytics-ready marts.
 
-The architecture works well. But our ClickHouse instance was consistently sitting at **~8 GiB resident memory**, uncomfortably close to the ceiling of our service tier. We needed to understand why — and whether we could bring it down without sacrificing performance.
+The architecture works well. But our ClickHouse instance was consistently sitting at **~9.5 GiB resident memory**, uncomfortably close to the ceiling of our service tier. We needed to understand why — and whether we could bring it down without sacrificing performance.
 
 ## The Wrong Suspect: Indexes
 
 The first thing most people check when ClickHouse memory is high is **primary key index size**. ClickHouse loads primary key indexes into RAM, so a large dataset with a wide primary key could theoretically consume significant memory.
 
-We checked. Total primary key memory across all databases: **~0.5 GiB**. That didn't explain the other 7+ GiB.
+We checked. Total primary key memory across all databases: **~0.5 GiB**. That didn't explain the rest of the footprint.
 
-## The Real Problem: 16,000 Active Parts
+## The Real Problem: 21,883 Active Parts
 
 We pulled a comprehensive set of diagnostics: jemalloc internals from `system.asynchronous_metrics`, part-level statistics from `system.parts`, and tracked memory from `system.metrics`.
 
-The picture was clear. Our production event database had **16,546 active parts** spread across 165 daily partitions, with an average of 100 parts per partition. A second environment had another 4,794 parts across 163 partitions. With 60+ event tables each creating daily partitions, the part count had grown to an unsustainable level.
+The picture was clear. The cluster as a whole was carrying **21,883 active parts** — and that number sat against two hard ClickHouse limits we were actively at risk of hitting:
+
+- **A service-wide ceiling of ~50,000 parts.** Cross it and the entire cluster stops accepting writes. We were already at 44% of that ceiling and trending upward with every daily partition created.
+- **A per-insert limit of 100 partitions.** Each `INSERT` can write into at most 100 distinct partitions in a single block. Our largest event database had 165 daily partitions, which meant any backfill that crossed a wide enough date range would fail outright.
+
+The bulk of those 21,883 parts were concentrated in a single database — our high-volume RudderStack event database, which alone held over 18,000 parts spread across 165 daily partitions. That averaged out to **roughly 110 parts per partition**, on a system where healthy is single digits. With 60+ event tables each creating a new partition every day, the part count had grown to an unsustainable level.
 
 Here's how over-partitioning was consuming memory:
 
-**Direct cost — part metadata.** Each active part carries column statistics, min/max indexes, mark file references, and checksums. At roughly 15 KB per part, 16K parts alone account for ~240 MiB of metadata held in memory.
+**Direct cost — part metadata.** Each active part carries column statistics, min/max indexes, mark file references, and checksums. At roughly 15 KB per part, 22K parts alone account for ~330 MiB of metadata held permanently in memory.
 
-**Indirect cost — merge pressure.** ClickHouse continuously merges small parts into larger ones in the background. With thousands of parts across hundreds of partitions, the merge scheduler is constantly active, allocating and freeing temporary buffers for each merge operation. This churn was consuming an estimated 0.5 GiB in transient merge overhead.
+**Indirect cost — merge pressure.** ClickHouse continuously merges small parts into larger ones in the background. With tens of thousands of parts across hundreds of partitions, the merge scheduler is constantly active, allocating and freeing temporary buffers for each merge operation. That churn is invisible in `system.parts` but very visible to the allocator.
 
-**Hidden cost — allocator fragmentation.** This was the big one. The constant allocation-and-release cycle of merges caused severe **jemalloc fragmentation**. The gap between `jemalloc.active` (memory reserved by the allocator) and `jemalloc.allocated` (memory actually in use) was **1.91 GiB** — 27% fragmentation. Nearly 2 GiB of memory that the process owned but wasn't productively using.
+**Hidden cost — allocator fragmentation.** This was the biggest contributor. The constant allocation-and-release cycle of merges caused severe **jemalloc fragmentation** — the gap between memory the allocator had reserved from the OS and memory it was actually using productively. On ClickHouse Cloud, that gap shows up as resident memory you're paying for and can't use.
 
-The full pre-migration memory breakdown:
-
-| Component | Usage |
-|---|---|
-| ClickHouse Core (caches, buffers) | ~3.5 GiB |
-| jemalloc fragmentation (active − allocated) | ~1.9 GiB |
-| Fixed overhead (code, shared libraries) | ~1.0 GiB |
-| Merge overhead (temporary buffers) | ~0.5 GiB |
-| jemalloc metadata | ~0.4 GiB |
-| Part metadata | ~0.3 GiB |
-| **Total MemoryResident** | **~8.0 GiB** |
-
-Over-partitioning was responsible for roughly **2.5–3 GiB** of that total — through metadata, merge overhead, and fragmentation combined.
+Combined, these three effects accounted for a meaningful share of the 9.5 GiB resident footprint — and the cascade was driven entirely by partition granularity.
 
 ## Why Over-Partitioning Costs You Money
 
-On ClickHouse Cloud, memory consumption directly affects your bill. Services are sized by memory tier, and exceeding your tier either triggers throttling or forces an upgrade. In our case, 8 GiB of memory usage was pushing us toward a larger (and more expensive) service that we didn't actually need for our query workload.
+ClickHouse Cloud's pricing model has a sharp non-linearity that makes memory pressure expensive in a way most teams don't realize until they hit it.
+
+A single replica caps out at around **12 GiB of memory**. Below that ceiling, you scale up gracefully — pay a bit more, get a bit more memory, no architectural change. Cross it, and you can no longer scale a single replica further. The only way forward is to add a second replica, and from that point on you're paying for **two replicas** at the new tier, not one.
+
+The math is brutal. If you were paying, say, $300/month for a single 12 GiB replica, the next step up isn't $400 for 16 GiB — it's something like $450 × 2 replicas = **$900/month** for 16 GiB × 2. Roughly triple the cost for marginally more usable headroom. And the second replica isn't buying you redundancy you actually needed; it's a pricing artifact of the tier model.
+
+Sitting at 9.5 GiB of resident memory put us alarmingly close to that wall, and most of that memory wasn't doing useful work — it was part metadata, merge buffers, and fragmentation from too many parts. Hitting the ceiling and being forced into a multi-replica tier would have meant paying double-or-more for capacity we'd already be wasting on partition overhead.
 
 But the cost isn't just financial:
 
 - **Slower merges.** More parts means more merge work. When merges can't keep up with ingestion, you end up with too many parts per partition, which degrades query performance because ClickHouse must read from and merge results across many small files instead of a few large ones.
-- **Higher disk usage.** Small parts compress poorly. ClickHouse's codecs work best with large data blocks — when data is fragmented across thousands of tiny parts, compression ratios suffer. We saw a **58% disk reduction** on one environment just from consolidating parts.
-- **Query overhead.** Each query must open file handles, read mark files, and check min/max indexes for every relevant part. With 100 parts per partition, even a simple filtered query does 100× the metadata work compared to a well-merged partition with a single part.
+- **Higher disk usage.** Small parts compress poorly. ClickHouse's codecs work best with large data blocks — when data is fragmented across thousands of tiny parts, compression ratios suffer.
+- **Query overhead.** Each query must open file handles, read mark files, and check min/max indexes for every relevant part. With 100+ parts per partition, even a simple filtered query does 100× the metadata work compared to a well-merged partition with a single part.
 
-## The Fix: Monthly Partitioning
+## The Fix: A Longer Partition Period
 
-The change was simple: replace `PARTITION BY toYYYYMMDD(received_at)` with `PARTITION BY toYYYYMM(received_at)`.
+The change was simple in shape: replace `PARTITION BY toYYYYMMDD(received_at)` with a coarser partition expression. For our workload that meant `toYYYYMM(received_at)` — monthly. But the principle generalizes.
 
-Daily partitioning is rarely necessary for event data. The common justification is "we might need to drop a specific day," but in practice, TTL policies handle data expiration and they work at the partition level regardless of granularity. For query filtering, ClickHouse's primary key (typically starting with a date column) provides the same pruning within a monthly partition that a daily partition boundary would.
+**The right partition period depends on the table.** What you want is enough partitions to make TTL drops and selective `ALTER TABLE DROP PARTITION` operations tractable, but few enough that merges stay healthy and part counts stay well below the service ceiling. The choice depends on:
 
-We projected the savings before committing:
+- **Data volume.** A table ingesting billions of rows per day might justify monthly partitions; a low-volume dimensional table might do better with a single partition (`PARTITION BY tuple()`) or yearly.
+- **Read patterns.** If queries almost always filter by a date range, the primary key handles pruning within partitions — you don't need partition boundaries to match query boundaries.
+- **Write patterns.** If you backfill or reprocess by date range, the partition period should align with how you batch those operations.
+- **Retention.** If you drop data after 90 days, monthly is the natural choice. If you keep data for years and rarely drop, quarterly or yearly may be enough.
 
-| Component | Daily (Current) | Monthly (Projected) |
-|---|---|---|
-| Part Metadata | 0.3 GiB | 0.02 GiB |
-| jemalloc Fragmentation | 2.2 GiB | 0.6 GiB |
-| Merge Overhead | 0.5 GiB | 0.1 GiB |
-| **Total Resident** | **~8.0 GiB** | **~5.5 GiB** |
+Daily partitioning is rarely the right answer for high-volume event data. The common justification is "we might need to drop a specific day," but in practice, TTL policies handle data expiration at the partition level regardless of granularity, and ClickHouse's primary key (typically starting with a date column) provides query pruning *within* a partition that's just as effective as a partition boundary.
 
-## Validating on Staging First
+For our RudderStack event tables, monthly was the right call. For lower-volume tables in the same migration, we considered quarterly. The rule of thumb we landed on: **partition periods should produce tens of partitions per table, not hundreds**.
 
-We tested on a staging environment — same schema, lower volume, 4,794 parts across 60+ tables.
+## Production Results
 
-The migration process for each table:
+We applied the migration table by table, with verification at each step:
 
-1. Create a new table with identical schema but `PARTITION BY toYYYYMM(received_at)`
+1. Create a new table with identical schema but a coarser `PARTITION BY` expression
 2. `INSERT INTO new_table SELECT * FROM old_table`
 3. Verify row counts match exactly
 4. `RENAME TABLE old_table TO old_table_backup, new_table TO old_table`
 5. Drop the backup after verification
 
-### Staging Results: 15 Minutes Post-Migration
+### The Memory Arc
 
-| Metric | Before | After | Change |
-|---|---|---|---|
-| Total Parts | 4,794 | 332 | **−93%** |
-| Unique Partitions | 163 | 7 | **−96%** |
-| Disk Size | 35.34 MiB | 14.91 MiB | **−58%** |
-| jemalloc.allocated | 5.09 GiB | 4.43 GiB | **−660 MiB** |
-| MemoryResident | 7.63 GiB | 7.56 GiB | −70 MiB |
+Resident memory didn't drop in a single step. It followed this timeline:
 
-The `jemalloc.allocated` drop of 660 MiB confirmed real memory was being freed. The smaller `MemoryResident` drop (70 MiB) was expected — jemalloc doesn't immediately return freed pages to the OS, especially after heavy allocation churn from the migration process itself.
+| Timing | MemoryResident |
+|---|---|
+| Before migration | ~9.5 GiB |
+| A few days after migration | ~8.0 GiB |
+| Three months after migration | ~6.0 GiB |
 
-Fragmentation temporarily jumped from 27% to 36%, which is normal: the migration involves creating new tables, bulk-copying data, and dropping old ones — exactly the kind of activity that fragments the heap. We needed time for jemalloc's decay mechanisms to reclaim that space.
+The immediate post-migration drop of ~1.5 GiB came from eliminating the metadata and live-merge overhead. The additional ~2 GiB that materialized over the following months came from jemalloc gradually releasing fragmented pages back to the OS once the part churn subsided. **Total reduction: 3.5 GiB, or 37% of the original footprint.**
 
-## Production Migration and Long-Term Results
+This timing matters. A spot check 24 hours after a migration of this kind will dramatically understate the savings — most of the win is in fragmentation reclamation, and that runs on jemalloc's decay timers, not on event-loop time.
 
-With staging validated, we applied the same process to production — 16,546 parts across 165 daily partitions. Same procedure, larger scale.
+### Parts and Partitions
 
-Here are the results three months after completing the full migration:
-
-### Parts: 90% Reduction
-
-| Environment | Before | After | Change |
-|---|---|---|---|
-| Production | 16,546 parts / 165 partitions | 1,576 parts / 276 partitions | **−90%** |
-| Staging | 4,794 parts / 163 partitions | 598 parts / 18 partitions | **−88%** |
-
-Production went from 100 parts per partition down to 5.7 — a sign that background merges are keeping up effortlessly instead of constantly racing to consolidate an avalanche of small parts.
-
-### Memory: From 8 GiB to 6 GiB
-
-| Metric | Before (Jan 2026) | After (Apr 2026) | Change |
-|---|---|---|---|
-| MemoryResident | 7.63 GiB | 5.91 GiB | **−1.72 GiB (−23%)** |
-| jemalloc.resident | 7.41 GiB | 6.11 GiB | **−1.30 GiB (−18%)** |
-| TrackedMemory | 7.19 GiB | 5.96 GiB | **−1.23 GiB (−17%)** |
-| jemalloc.allocated | 5.21 GiB | 2.98 GiB | **−2.23 GiB (−43%)** |
-| Estimated Metadata Memory | 315 MiB | 41 MiB | **−274 MiB (−87%)** |
-
-The `jemalloc.allocated` drop from 5.21 GiB to 2.98 GiB is the most telling metric — ClickHouse is using **2.2 GiB less actual memory** for the same data and workload. No queries changed. No data was lost. No features were removed.
-
-### A Note on Fragmentation
-
-| Metric | Before | After |
+| Metric | Before | After (3 months in) |
 |---|---|---|
-| Fragmentation (active − allocated) | 1.91 GiB (27%) | 2.32 GiB (44%) |
+| Active parts (migrated database) | ~18,100 | 1,705 |
+| Parts per partition | ~110 | ~6 |
+| Active parts (cluster total) | 21,883 | ~6,500 |
 
-The fragmentation percentage went up, but this is misleading. Absolute fragmentation barely changed (~1.9 → 2.3 GiB) while the denominator (`jemalloc.allocated`) dropped sharply, inflating the ratio. What matters is the bottom line: total `MemoryResident` fell from 7.63 to 5.91 GiB. The remaining fragmentation is largely structural — jemalloc's arena overhead relative to a much smaller working set.
+The migrated database alone shed over 90% of its parts. Cluster-wide, total active parts dropped from a worrying 21,883 (44% of the 50K service limit) to ~6,500 (13%) — comfortably back into safe territory.
+
+Parts-per-partition dropping from ~110 to ~6 is the operational signal that mattered most. It means background merges are keeping up effortlessly instead of constantly racing to consolidate an avalanche of small parts. Three months in, the part count has held steady, which means the system has reached equilibrium under monthly partitioning.
+
+No queries changed. No data was lost. No features were removed.
 
 ## How to Check If You're Over-Partitioned
 
@@ -156,7 +132,8 @@ ORDER BY total_parts DESC;
 
 **Red flags to watch for:**
 
-- **Total parts > 5,000** across the instance — you're likely paying a memory tax.
+- **Cluster-wide active parts approaching 50,000** — you're in the danger zone for write outages. Anything over ~20K warrants action.
+- **Total parts > 5,000 in a single database** — you're paying a meaningful memory tax.
 - **Parts per partition > 20** — merges can't keep up with your ingestion rate at this partition granularity.
 - **Hundreds of unique partitions** in a single database — each partition is a merge boundary; ClickHouse cannot merge parts across partitions.
 
@@ -179,13 +156,15 @@ If fragmentation exceeds 20–25%, part churn from over-partitioning is a likely
 
 ## Key Takeaways
 
-**Daily partitioning is almost never worth it for event data.** Unless you're routinely dropping individual days via `ALTER TABLE DROP PARTITION`, monthly partitioning gives you the same query pruning benefits with a fraction of the overhead. ClickHouse filters efficiently within partitions using the primary key — you don't need partition boundaries for date filtering.
+**Daily partitioning is almost never worth it for event data.** Unless you're routinely dropping individual days via `ALTER TABLE DROP PARTITION`, a coarser partition period gives you the same query pruning benefits with a fraction of the overhead. ClickHouse filters efficiently within partitions using the primary key — you don't need partition boundaries for date filtering.
 
-**The memory cost of parts is mostly indirect.** Direct metadata per part is small (~15 KB). But the cascade effect — merge pressure → temporary allocations → allocator fragmentation — amplifies the cost by 10×. In our case, 274 MiB of metadata savings led to 1.7 GiB of total memory reduction.
+**Pick the partition period to match the table, not the calendar.** Monthly is a good default for high-volume event tables, but quarterly or yearly may be better for lower-volume or long-retention data. The target is tens of partitions per table, not hundreds.
 
-**Measure, wait, then measure again.** Our 15-minute post-migration check showed only 70 MiB improvement in `MemoryResident`. Three months later, the same metric showed 1.72 GiB improvement. Memory allocators operate on longer timescales than a quick before/after comparison captures — decay timers, page reclamation, and merge cycle completion all take time.
+**The memory cost of parts is mostly indirect.** Direct metadata per part is small (~15 KB). But the cascade effect — merge pressure → temporary allocations → allocator fragmentation — amplifies the cost by an order of magnitude.
 
-**Over-partitioning is a cost problem, not just a performance problem.** On ClickHouse Cloud, memory determines your tier and your bill. The 30% memory reduction from this single change was equivalent to a meaningful monthly cost saving — or alternatively, 30% more headroom for actual query workloads without upgrading.
+**Measure, wait, then measure again.** A few days after the migration, resident memory had only dropped by ~1.5 GiB. Three months later, it was down by 3.5 GiB total. Memory allocators operate on longer timescales than a quick before/after comparison captures — decay timers, page reclamation, and merge cycle completion all take time.
+
+**Over-partitioning is a cost problem, not just a performance problem.** On ClickHouse Cloud, hitting the single-replica memory ceiling forces you onto a multi-replica tier that can roughly triple your bill. The 37% memory reduction from this single change wasn't just headroom — it was protection against a non-linear cost cliff.
 
 ## The Migration Playbook
 
@@ -193,11 +172,11 @@ For teams considering the same change:
 
 1. **Collect baseline metrics.** Query `system.asynchronous_metrics` for jemalloc internals, `system.parts` for part counts by database and table, and `system.metrics` for tracked memory. Save raw numbers.
 
-2. **Start with a low-risk environment.** Migrate staging or a development replica first. Validate row count integrity and confirm the direction of memory movement.
+2. **Pick the right period for each table.** Don't blanket-apply monthly. Match the partition period to the table's volume, retention, and query patterns. The target: tens of partitions per table, single-digit parts per partition at steady state.
 
-3. **Migrate table by table.** Create the new table, `INSERT INTO ... SELECT * FROM`, verify, rename, drop. Don't try batch DDL operations across all tables at once.
+3. **Migrate table by table.** Create the new table, `INSERT INTO ... SELECT * FROM`, verify row counts, rename, drop the backup. Don't try batch DDL operations across all tables at once.
 
-4. **Wait before declaring victory.** Give jemalloc 24–48 hours minimum to stabilize. The real savings materialize over days to weeks.
+4. **Wait before declaring victory.** Give jemalloc 24–48 hours minimum to stabilize, and re-check at the one-month and three-month marks. The real savings materialize over weeks, not minutes.
 
 5. **Monitor parts per partition.** A healthy table should converge to single-digit parts per partition after merges complete. If you're consistently above 10, revisit your partitioning granularity or merge settings.
 
