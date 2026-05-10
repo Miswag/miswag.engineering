@@ -2,7 +2,7 @@
 
 As data platforms grow in complexity, maintaining a centralized metadata catalog becomes non-negotiable. OpenMetadata has emerged as a strong open-source option for data discovery, governance, and lineage tracking — but what happens when your pipeline orchestrator isn't natively supported?
 
-In this guide, I'll walk through how to programmatically ingest pipeline metadata from a custom service (using MageAI as an example) into OpenMetadata via its Python SDK. The same pattern applies to any orchestrator with a REST API — Prefect, Dagster, a homegrown scheduler, or anything else in your stack.
+In this guide, I'll walk through how to programmatically ingest pipeline metadata from a custom service (using a data orchestrator as an example) into OpenMetadata via its Python SDK. The same pattern applies to any orchestrator with a REST API — Prefect, Dagster, a homegrown scheduler, or anything else in your stack.
 
 ---
 
@@ -105,7 +105,7 @@ def ensure_pipeline_service():
 
 ## Fetching Pipelines from the Orchestrator
 
-Abstract the orchestrator's API behind two functions — one for the list, one for the detail. This example uses MageAI's REST API, but the pattern works for any service:
+Abstract the orchestrator's API behind two functions — one for the list, one for the detail. This example uses a data orchestrator's REST API, but the pattern works for any service:
 
 ```python
 import requests
@@ -178,7 +178,7 @@ def _needs_update(existing: Pipeline, pipeline_data: dict) -> bool:
     Return True if the OpenMetadata record differs from the source.
     """
 
-    # In Mage, pipeline "name" is the same as "uuid"
+    # pipeline "name" is the same as "uuid" in this orchestrator
     expected_name = pipeline_data.get("uuid")
     expected_description = pipeline_data.get("description")
 
@@ -327,7 +327,7 @@ if __name__ == "__main__":
     main()
 ```
 
-Schedule this with cron, a CI pipeline, or — if you're already running MageAI — as a standalone pipeline block that fires daily.
+Schedule this with cron, a CI pipeline, or — if you're already running a data orchestrator — as a standalone pipeline block that fires daily.
 
 ---
 
@@ -347,6 +347,6 @@ Before promoting this to production, make sure you've covered:
 
 A metadata catalog is only as useful as it is accurate. By automating the sync between your pipeline orchestrator and OpenMetadata, you close the gap between what's running in production and what your team can discover in the catalog.
 
-The pattern shown here — fetch from API, map to OpenMetadata entities, upsert idempotently — generalizes to any orchestrator with a REST interface. Whether you're running MageAI, Prefect, Dagster, or a custom scheduler, the OpenMetadata Python SDK gives you the primitives to keep your catalog in sync without manual intervention.
+The pattern shown here — fetch from API, map to OpenMetadata entities, upsert idempotently — generalizes to any orchestrator with a REST interface. Whether you're running Prefect, Dagster, or a custom scheduler, the OpenMetadata Python SDK gives you the primitives to keep your catalog in sync without manual intervention.
 
 The end result: better data discovery, reliable lineage, and a governance layer that actually reflects your production pipelines.

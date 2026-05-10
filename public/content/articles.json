@@ -1,47 +1,36 @@
 [
   {
-    "article_id": "clickhouse-optimization",
-    "article_title": "Over-Partitioning Can Kill Your ClickHouse Performance and Inflate Your Costs",
+    "article_id": "warehouse-optimization",
+    "article_title": "Over-Partitioning Can Kill Your Analytics Warehouse Performance and Inflate Your Costs",
     "author_team_id": 3,
     "category_id": 1,
     "article_created_at": "2026-03-04",
-    "article_keywords": ["ClickHouse", "Partitioning", "Memory Optimization", "jemalloc", "ClickHouse Cloud"],
-    "article_description": "Daily partitioning in ClickHouse can silently consume gigabytes of memory through part metadata overhead, merge pressure, and jemalloc fragmentation. This case study shows how switching from daily to monthly partitioning reduced active parts by 90%, cut memory usage by 30%, and eliminated the need for a costly tier upgrade — all without changing a single query.",
-    "article_directory": "clickhouse-optimization",
-    "featured_image": "clickhouse.png"
+    "article_keywords": ["Partitioning", "Memory Optimization", "Analytics Warehouse", "Data Engineering", "Cost Optimization"],
+    "article_description": "Choosing too fine a partition granularity in a columnar analytics warehouse silently accumulates memory pressure through part metadata overhead, merge churn, and allocator fragmentation. This article explains why over-partitioning happens, how the three cost mechanisms compound each other, and how switching to a coarser partition period eliminates the problem — without changing a single query.",
+    "article_directory": "warehouse-optimization",
+    "featured_image": "dara.png"
   },
   {
     "article_id": "gx-setup",
-    "article_title": "End-to-End Data Quality Architecture: Great Expectations, GitHub, S3, Slack, and Linear — From Validation to Resolution",
+    "article_title": "End-to-End Data Quality Architecture with Great Expectations — From Validation to Resolution",
     "author_team_id": 3,
     "category_id": 1,
     "article_created_at": "2025-08-13",
     "article_keywords": ["GreatExpectations", "Data Quality", "Data Architecture", "DataOps", "GX"],
-    "article_description": "A complete, production-proven architecture for continuous data quality validation that goes beyond detection. Built on Great Expectations, GitHub, S3, Slack, and Linear, the system automates the full lifecycle of a data issue — from rule creation by multiple teams, through daily scheduled validation against a data warehouse, to real-time alerting and automatic issue creation routed to the right team's backlog. Runs for under $5/month with no dedicated infrastructure.",
+    "article_description": "A complete, production-proven architecture for continuous data quality validation that goes beyond detection. The system automates the full lifecycle of a data issue — from rule creation by multiple teams, through daily scheduled validation against a data warehouse, to real-time alerting and automatic issue creation routed to the right team's backlog. Includes operational guidance on upgrading to Great Expectations 1.x, building Data Docs efficiently, and setting storage retention policies. Runs for under $5/month with no dedicated infrastructure.",
     "article_directory": "gx-setup",
     "featured_image": "ge.png"
   },
   {
-    "article_id": "gx-optimization",
-    "article_title": "From $25/Day to $0.01/Day: Optimizing Great Expectations for Production Cost and Speed, (Migration from v0.18 to v1.x)",
-    "author_team_id": 3,
-    "category_id": 1,
-    "article_created_at": "2026-01-13",
-    "article_keywords": ["GreatExpectations", "Data Quality", "Cost Optimization", "Migration", "GX"],
-    "article_description": "How a hidden default in Great Expectations — rebuilding all Data Docs on every checkpoint run — silently inflated pipeline costs from $0.50 to $25/day. Covers the 0.18.x to 1.x migration, the API delta, and the architectural fix that cut costs by 99.96% and runtime by 90%.",
-    "article_directory": "gx-optimization",
-    "featured_image": "gx-opt.png"
-  },
-  {
     "article_id": "fullload-optimization",
-    "article_title": "Loading Large MySQL Tables Into ClickHouse Without Blocking Production — A MageAI Pipeline Pattern",
+    "article_title": "Loading Large Relational Database Tables Into an Analytics Warehouse Without Blocking Production",
     "author_team_id": 3,
     "category_id": 1,
     "article_created_at": "2026-04-15",
-    "article_keywords": ["MySQL", "MageAI", "Data Replication", "ETL", "Pipeline"],
-    "article_description": "A chunked, memory-efficient full-load pattern for replicating large MySQL tables into ClickHouse using query-based extraction and MageAI orchestration. Covers ID-based pagination, batch sizing, memory management, and production-safe extraction — no CDC, binlog, or replica required.",
+    "article_keywords": ["Data Replication", "ETL", "Pipeline", "Full Load", "Data Orchestrator"],
+    "article_description": "A chunked, memory-efficient full-load pattern for replicating large relational database tables into an analytics warehouse using query-based extraction and data orchestrator pipelines. Covers keyset pagination, batch sizing, memory management, and production-safe extraction — no CDC, binlog, or replica required.",
     "article_directory": "fullload-optimization",
-    "featured_image": "mysqlstreaming.webp"
+    "featured_image": "streaming.webp"
   },
   {
     "article_id": "pipelines-openmetadata",
@@ -49,21 +38,21 @@
     "author_team_id": 3,
     "category_id": 1,
     "article_created_at": "2025-07-07",
-    "article_keywords": ["OpenMetadata", "MageAI", "Metadata Ingestion", "Data Catalog", "Pipeline Orchestration"],
-    "article_description": "A practical guide to programmatically ingesting pipeline metadata from custom orchestrators into OpenMetadata using its Python SDK. Covers creating pipeline services, registering pipelines, and syncing task-level metadata — with MageAI as the example, but applicable to Prefect, Dagster, or any orchestrator with a REST API.",
+    "article_keywords": ["OpenMetadata", "Data Orchestrator", "Metadata Ingestion", "Data Catalog", "Pipeline Orchestration"],
+    "article_description": "A practical guide to programmatically ingesting pipeline metadata from custom orchestrators into OpenMetadata using its Python SDK. Covers creating pipeline services, registering pipelines, and syncing task-level metadata — applicable to Prefect, Dagster, or any orchestrator with a REST API.",
     "article_directory": "pipelines-openmetadata",
-    "featured_image": "mageai.png"
+    "featured_image": "pipeline_openmetadata.jpg"
   },
   {
-    "article_id": "typesense-openmetadata",
-    "article_title": "Automating Typesense Search Index Ingestion to OpenMetadata Using Python SDK",
+    "article_id": "searchengine-openmetadata",
+    "article_title": "Automating Search Engine Index Ingestion to OpenMetadata Using Python SDK",
     "author_team_id": 3,
     "category_id": 1,
     "article_created_at": "2025-08-13",
-    "article_keywords": ["OpenMetadata", "Typesense", "Search Index", "Data Governance", "Data Catalog"],
-    "article_description": "A step-by-step guide to discovering Typesense collections and registering them as search index entities in OpenMetadata using the Python SDK. Covers field type mapping, sample data extraction, and idempotent sync — bringing search engine metadata into your governance catalog alongside databases, pipelines, and dashboards.",
-    "article_directory": "typesense-openmetadata",
-    "featured_image": "typesense.jpg"
+    "article_keywords": ["OpenMetadata", "Search Engine", "Search Index", "Data Governance", "Data Catalog"],
+    "article_description": "A step-by-step guide to discovering search engine collections and registering them as search index entities in OpenMetadata using the Python SDK. Covers field type mapping, sample data extraction, and idempotent sync — bringing search engine metadata into your governance catalog alongside databases, pipelines, and dashboards.",
+    "article_directory": "searchengine-openmetadata",
+    "featured_image": "openmetadata_searchengine.png"
   },
   {
     "article_id": "mysql-bin-log",
@@ -75,17 +64,6 @@
     "article_description": "In Amazon RDS, binary logs (binlogs) serve as critical components for recording all changes to your database, including INSERT, UPDATE, and DELETE operations. These logs enable essential functionality such as replication, point-in-time recovery, and change data capture (CDC).",
     "article_directory": "mysql-bin-log",
     "featured_image": "rdsmysqlcdc.webp"
-  },
-  {
-    "article_id": "data-pipeline",
-    "article_title": "Batch Data Pipeline Design: Full Load vs. Incremental Load",
-    "author_team_id": 3,
-    "category_id": 1,
-    "article_created_at": "2025-05-19",
-    "article_keywords": ["data", "pipeline", "batch","full-load","incremental"],
-    "article_description": "Building effective batch data pipelines is fundamental to modern data engineering. This article focuses on implementing batch data pipeline patterns specifically in a SQL, Python, Mage AI, and ClickHouse ecosystem.",
-    "article_directory": "data-pipeline",
-    "featured_image": "datapipe.webp"
   },
   {
     "article_id": "open-metadata-datahub",
