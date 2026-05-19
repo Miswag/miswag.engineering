@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
     steps:
       - name: Checkout internal repo
         uses: actions/checkout@v4
@@ -24,11 +25,7 @@ jobs:
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
 
-          # Configure git to use the token for github.com
-          git config --global credential.helper store
-          echo "https://oauth2:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com" > ~/.git-credentials
-
-          # Clone public repo without auth (it's public) to get its .github folder
+          # Clone public repo (public, no auth needed)
           git clone https://github.com/Miswag/miswag.engineering.git public-repo
 
           # Replace our .github with the public repo's .github
@@ -41,5 +38,5 @@ jobs:
           git add -A
           git commit -m "sync: preserve public workflows"
 
-          git remote add public https://github.com/Miswag/miswag.engineering.git
+          git remote add public https://oauth2:${TOKEN}@github.com/Miswag/miswag.engineering.git
           git push public sync-public:main --force
