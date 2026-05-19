@@ -11,6 +11,8 @@ jobs:
   sync:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout internal repo
         uses: actions/checkout@v4
@@ -18,16 +20,14 @@ jobs:
           fetch-depth: 0
 
       - name: Push to public repo (preserve public .github)
-        env:
-          PUBLIC_REPO_TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
 
-          # Clone public repo to get its .github folder
-          git clone https://x-access-token:${PUBLIC_REPO_TOKEN}@github.com/Miswag/miswag.engineering.git public-repo
+          # Clone public repo without auth (it's public) to get its .github folder
+          git clone https://github.com/Miswag/miswag.engineering.git public-repo
 
-          # Copy public repo's .github into our working tree
+          # Replace our .github with the public repo's .github
           rm -rf .github
           cp -r public-repo/.github .github
           rm -rf public-repo
@@ -37,5 +37,5 @@ jobs:
           git add -A
           git commit -m "sync: preserve public workflows"
 
-          git remote add public https://x-access-token:${PUBLIC_REPO_TOKEN}@github.com/Miswag/miswag.engineering.git
+          git remote add public https://x-access-token:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/Miswag/miswag.engineering.git
           git push public sync-public:main --force
