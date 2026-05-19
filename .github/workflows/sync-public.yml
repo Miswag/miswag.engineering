@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
 
     steps:
@@ -18,15 +17,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Verify token exists
+      - name: Verify token
         run: |
           if [ -z "$TOKEN" ]; then
-            echo "PUBLIC_REPO_TOKEN is empty"
+            echo "TOKEN IS EMPTY"
             exit 1
           fi
 
-          echo "PUBLIC_REPO_TOKEN detected"
+          echo "TOKEN OK"
 
       - name: Configure Git
         run: |
@@ -37,30 +37,25 @@ jobs:
         run: |
           git clone https://github.com/Miswag/miswag.engineering.git public-repo
 
-      - name: Preserve public repo workflows
+      - name: Preserve public workflows
         run: |
           rm -rf .github
           cp -r public-repo/.github .github
-
-      - name: Cleanup cloned repo
-        run: |
           rm -rf public-repo
 
-      - name: Create sync branch
+      - name: Create sync commit
         run: |
           git checkout -B sync-public
 
-      - name: Commit changes
-        run: |
           git add -A
 
           if git diff --cached --quiet; then
-            echo "No changes to commit"
+            echo "No changes"
           else
             git commit -m "sync: preserve public workflows"
           fi
 
-      - name: Push to public repository
+      - name: Push to public repo
         run: |
           git remote add public https://x-access-token:${TOKEN}@github.com/Miswag/miswag.engineering.git
 
